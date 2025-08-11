@@ -34,7 +34,15 @@ pub struct AppState {
 
 impl AppState {
     pub fn new() -> Self {
-        Self { client: Client::new() }
+        Self::default()
+    }
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self {
+            client: Client::new(),
+        }
     }
 }
 
@@ -74,11 +82,15 @@ pub async fn chat_completions(
         .map_err(|_| StatusCode::BAD_GATEWAY)?;
 
     if req.stream {
-        let stream = azure_resp.bytes_stream().map(|chunk| chunk.map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "stream error")));
+        let stream = azure_resp
+            .bytes_stream()
+            .map(|chunk| chunk.map_err(|_| std::io::Error::other("stream error")));
         let body = Body::from_stream(stream);
         let mut resp = Response::new(body);
-        resp.headers_mut()
-            .insert("content-type", HeaderValue::from_static("text/event-stream"));
+        resp.headers_mut().insert(
+            "content-type",
+            HeaderValue::from_static("text/event-stream"),
+        );
         Ok(resp)
     } else {
         let status = azure_resp.status();
@@ -87,7 +99,8 @@ pub async fn chat_completions(
             .await
             .map_err(|_| StatusCode::BAD_GATEWAY)?;
         let mut resp = Response::new(Body::from(bytes));
-        *resp.status_mut() = axum::http::StatusCode::from_u16(status.as_u16()).unwrap_or(StatusCode::OK);
+        *resp.status_mut() =
+            axum::http::StatusCode::from_u16(status.as_u16()).unwrap_or(StatusCode::OK);
         resp.headers_mut()
             .insert("content-type", HeaderValue::from_static("application/json"));
         Ok(resp)

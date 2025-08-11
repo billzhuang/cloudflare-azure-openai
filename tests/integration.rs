@@ -1,12 +1,14 @@
 use cloudflare_azure_openai::{app, ChatCompletionRequest, Message};
-use tokio::net::TcpListener;
 use futures_util::StreamExt;
+use tokio::net::TcpListener;
 
 async fn start_app() -> String {
     let app = app();
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
-    tokio::spawn(async move { axum::serve(listener, app).await.unwrap(); });
+    tokio::spawn(async move {
+        axum::serve(listener, app).await.unwrap();
+    });
     format!("http://{}", addr)
 }
 
@@ -22,7 +24,10 @@ async fn test_chat_completion() {
     let base = start_app().await;
     let req = ChatCompletionRequest {
         model: "gpt-4o".to_string(),
-        messages: vec![Message { role: "user".into(), content: "Hello".into() }],
+        messages: vec![Message {
+            role: "user".into(),
+            content: "Hello".into(),
+        }],
         stream: false,
     };
     let client = reqwest::Client::new();
@@ -50,7 +55,10 @@ async fn test_chat_completion_stream() {
     let base = start_app().await;
     let req = ChatCompletionRequest {
         model: "gpt-4o".to_string(),
-        messages: vec![Message { role: "user".into(), content: "stream".into() }],
+        messages: vec![Message {
+            role: "user".into(),
+            content: "stream".into(),
+        }],
         stream: true,
     };
     let client = reqwest::Client::new();
