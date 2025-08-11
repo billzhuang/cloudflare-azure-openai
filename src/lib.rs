@@ -32,12 +32,6 @@ pub struct AppState {
     client: Client,
 }
 
-impl AppState {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
 impl Default for AppState {
     fn default() -> Self {
         Self {
@@ -110,5 +104,5 @@ pub async fn chat_completions(
 pub fn app() -> Router {
     Router::new()
         .route("/v1/chat/completions", post(chat_completions))
-        .with_state(AppState::new())
+        .with_state(AppState::default())
 }
